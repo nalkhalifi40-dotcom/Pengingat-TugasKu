@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TugasKu Remind - Pengingat Tugas Kelas</title>
+  <meta name="description" content="Pengingat tugas sekolah dengan pembagian kelompok, link tugas, dan notifikasi tenggat waktu.">
+  <meta name="theme-color" content="#0284c7">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TugasKu">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -103,32 +111,24 @@
           </button>
         </form>
 
-        <!-- Demo Accounts Grid -->
+        <!-- Isi cepat akun murid (akun admin tidak ditampilkan) -->
         <div class="mt-6 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-          <p class="text-xs font-semibold text-slate-500 mb-2 flex items-center justify-between">
-            <span><i class="fa-solid fa-bolt text-amber-500"></i> Akun Admin Resmi & Siswa:</span>
+          <p class="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt text-amber-500"></i>
+            <span>Isi Cepat Akun Murid</span>
           </p>
-          <div class="space-y-1.5 text-xs">
-            <div class="grid grid-cols-3 gap-1">
-              <button onclick="fillAdminDemo('rafael')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
-                🔑 rafael
-              </button>
-              <button onclick="fillAdminDemo('naufal')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
-                🔑 naufal
-              </button>
-              <button onclick="fillAdminDemo('adhyastha')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
-                🔑 adhyastha
-              </button>
-            </div>
-            <div class="flex gap-1.5">
-              <select id="student-demo-select" class="flex-1 min-w-0 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 text-xs focus:outline-none focus:border-sky-500">
-                <option value="">Pilih akun murid...</option>
-              </select>
-              <button onclick="fillStudentDemo()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 font-semibold whitespace-nowrap">
-                Isi
-              </button>
-            </div>
+          <div class="flex gap-1.5">
+            <select id="student-demo-select" class="flex-1 min-w-0 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 text-xs focus:outline-none focus:border-sky-500">
+              <option value="">Pilih akun murid...</option>
+            </select>
+            <button onclick="fillStudentDemo()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 font-semibold whitespace-nowrap">
+              Isi
+            </button>
           </div>
+          <p class="text-[10px] leading-relaxed text-slate-400 mt-2 flex items-start gap-1.5">
+            <i class="fa-solid fa-shield-halved mt-0.5"></i>
+            <span>Akun admin tidak ditampilkan di halaman login. Admin masuk dengan username dan password resmi masing-masing.</span>
+          </p>
         </div>
 
       </div>
@@ -205,8 +205,12 @@
             <p class="text-xs text-slate-500 mt-0.5" id="page-subtitle">Pantau dan selesaikan tugas tepat waktu</p>
           </div>
 
-          <!-- Action Buttons for Admin -->
-        <div class="flex items-center gap-3" id="header-actions">
+        <!-- Action Buttons for Admin -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3" id="header-actions">
+          <button id="btn-install-pwa" onclick="installPwa()" class="hidden px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
+            <i class="fa-solid fa-download"></i>
+            <span>Pasang Aplikasi</span>
+          </button>
           <button id="btn-device-notif" onclick="requestNotificationPermission()" class="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
             <i class="fa-solid fa-bell-ring text-sky-500"></i>
             <span id="btn-notif-label">Izinkan Notifikasi Perangkat</span>
@@ -449,8 +453,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
-            <input type="text" id="task-subject" placeholder="Contoh: Matematika" required
+            <select id="task-subject" required
               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+              <option value="">Pilih mata pelajaran...</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Guru / Pengampu</label>
@@ -463,6 +469,13 @@
           <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Tugas</label>
           <input type="text" id="task-title" placeholder="Contoh: Latihan Soal Aljabar Bab 3" required maxlength="120"
             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Link Tugas <span class="font-normal text-slate-400">(opsional)</span></label>
+          <input type="url" id="task-link" placeholder="https://drive.google.com/..." maxlength="500"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+          <p class="text-[10px] text-slate-400 mt-1">Gunakan URL lengkap yang diawali http:// atau https://</p>
         </div>
 
         <div>
@@ -537,11 +550,12 @@
 
   <!-- JAVASCRIPT APP LOGIC -->
   <script>
-    // STRICT ADMIN CREDENTIALS (ONLY THESE 3 ACCOUNTS ARE AUTHORIZED ADMINS)
+    // STRICT ADMIN CREDENTIALS (ONLY THESE 4 ACCOUNTS ARE AUTHORIZED ADMINS)
     const ADMIN_ACCOUNTS = [
-      { username: "rafael", password: "rafael123", name: "Rafael (Admin)" },
-      { username: "naufal", password: "naufal123", name: "Naufal (Admin)" },
-      { username: "adhyastha", password: "atta123", name: "Adhyastha (Admin)" }
+      { username: "rafaeladmin", password: "RafaelAdmin123", name: "Rafael (Admin)" },
+      { username: "naufaladmin", password: "NaufalAdmin123", name: "Naufal (Admin)" },
+      { username: "adhyasthaadmin", password: "AdhyasthaAdmin123", name: "Adhyastha (Admin)" },
+      { username: "affaradmin", password: "AffarAdmin123", name: "Affar (Admin)" }
     ];
 
     // 19 STUDENT ACCOUNTS (username disimpan lowercase, password namapanggilan123)
@@ -549,31 +563,47 @@
       { name: "Adhyastha Abdillah Al Fattah", username: "adhyastha", password: "adhyastha123" },
       { name: "Agha Rifqi Faizal", username: "agha", password: "agha123" },
       { name: "Azzam Hanindhito Anaro", username: "azzam", password: "azzam123" },
-      { name: "Chaedar Dwi Osama", username: "osama", password: "osama123" },
+      { name: "Chaedar Dwi Osama", username: "chaedar", password: "chaedar123" },
       { name: "Danish Hasan Azzaki", username: "danish", password: "danish123" },
       { name: "Faiz Akila Wijaya", username: "faiz", password: "faiz123" },
       { name: "Fakhri adis hersa dzaki", username: "fakhri", password: "fakhri123" },
-      { name: "Haidar Aulia Alfarizky", username: "alfarizky", password: "alfarizky123" },
-      { name: "Haidar Nafi Attarmidzi", username: "nafi", password: "nafi123" },
-      { name: "Muhammad Abdurrahman Al Fatih", username: "fatih", password: "fatih123" },
-      { name: "Muhammad Bahruddin Ath-Thoriq", username: "thoriq", password: "thoriq123" },
-      { name: "Muhammad Naufal Al-Khalifi", username: "naufal", password: "naufal123" },
+      { name: "Haidar Aulia Alfarizky", username: "haidaraulia", password: "haidaraulia123" },
+      { name: "Haidar Nafi Attarmidzi", username: "haidarnafi", password: "haidarnafi123" },
+      { name: "Muhammad Abdurrahman Al Fatih", username: "abdurrahman", password: "abdurrahman123" },
+      { name: "Muhammad Bahruddin Ath-Thoriq", username: "bahruddin", password: "bahruddin123" },
+      { name: "Muhammad Naufal Al-Khalifi", username: "naufalkhalifi", password: "naufalkhalifi123" },
       { name: "Muhammad Rizqi Nashrulloh", username: "rizqi", password: "rizqi123" },
-      { name: "Rafael Kevin Ardiyansyah", username: "rafael", password: "rafael123" },
+      { name: "Rafael Kevin Ardiyansyah", username: "rafaelkevin", password: "rafaelkevin123" },
       { name: "Wafa Iliansyah Aqeel", username: "wafa", password: "wafa123" },
-      { name: "Zaid Axelle Sujatmianto", username: "axelle", password: "axelle123" },
-      { name: "Gavans Dzaky Nugroho Hernando", username: "nando", password: "nando123" },
-      { name: "Jiratullah Muzhaffar al-Tsaqib", username: "affar", password: "affar123" },
+      { name: "Zaid Axelle Sujatmianto", username: "zaid", password: "zaid123" },
+      { name: "Gavans Dzaky Nugroho Hernando", username: "gavans", password: "gavans123" },
+      { name: "Jiratullah Muzhaffar al-Tsaqib", username: "jiratullah", password: "jiratullah123" },
       { name: "Muhammad Kayyis Maulana El Yafye", username: "kayyis", password: "kayyis123" }
+    ];
+
+    // OFFICIAL SUBJECT LIST
+    const SUBJECT_OPTIONS = [
+      "English (Bahasa Inggris)",
+      "Homeroom Guidance (Perwalian)",
+      "Indonesian (Bahasa Indonesia)",
+      "Islamic Education (PAI)",
+      "Kurikulum Pesantren",
+      "Mathematic (Matematika)",
+      "Multimedia (ICT)",
+      "Natural Science (IPA)",
+      "Pancasila and Civics Education",
+      "School Project (Kokurikuler)",
+      "Social Studies (IPS)"
     ];
 
     // INITIAL SAMPLE TASKS
     const INITIAL_TASKS = [
       {
         id: "task-1",
-        subject: "Matematika",
+        subject: "Mathematic (Matematika)",
         teacher: "Pak Budi, S.Pd.",
         title: "Latihan Soal Aljabar Bab 3 Halaman 88",
+        link: "",
         dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
         dueTime: "23:59",
         type: "Individu",
@@ -585,9 +615,10 @@
       },
       {
         id: "task-2",
-        subject: "Bahasa Inggris",
+        subject: "English (Bahasa Inggris)",
         teacher: "Bu Anita, M.Pd.",
         title: "Presentasi Kelompok: Conversation Script",
+        link: "",
         dueDate: new Date(Date.now() + 172800000).toISOString().split('T')[0], // 2 days
         dueTime: "10:00",
         type: "Kelompok",
@@ -608,6 +639,20 @@
     let manualGroupDraft = [];
     let notifiedTasks = new Set(); // To prevent duplicate browser notifications
 
+    // PWA INSTALL PROMPT
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      document.getElementById('btn-install-pwa')?.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      document.getElementById('btn-install-pwa')?.classList.add('hidden');
+      showToast("TugasKu berhasil dipasang di perangkat", "success");
+    });
+
     // INITIALIZATION
     window.onload = function() {
       // Load saved tasks or set defaults (with migration from old "notes" field)
@@ -616,6 +661,7 @@
         tasks = savedTasks.map(task => ({
           ...task,
           description: task.description ?? task.notes ?? '',
+          link: typeof task.link === 'string' ? task.link : '',
           completedBy: Array.isArray(task.completedBy) ? task.completedBy : [],
           groups: Array.isArray(task.groups) ? task.groups : [],
           groupConfig: task.groupConfig || null
@@ -633,7 +679,18 @@
       const savedNotified = readStorage('tugasku_notified', []);
       notifiedTasks = new Set(Array.isArray(savedNotified) ? savedNotified : []);
 
-      // Populate student demo account selector (login helper)
+      // Populate official subject dropdown
+      const subjectSelect = document.getElementById('task-subject');
+      if (subjectSelect) {
+        SUBJECT_OPTIONS.forEach(subject => {
+          const option = document.createElement('option');
+          option.value = subject;
+          option.textContent = subject;
+          subjectSelect.appendChild(option);
+        });
+      }
+
+      // Populate student demo account selector (login helper, students only)
       const demoSelect = document.getElementById('student-demo-select');
       if (demoSelect) {
         STUDENT_ACCOUNTS.forEach(student => {
@@ -720,15 +777,6 @@
     }
 
     // AUTHENTICATION (single login form, role detected from credentials)
-    function fillAdminDemo(adminUser) {
-      const admin = ADMIN_ACCOUNTS.find(a => a.username === adminUser);
-      if (admin) {
-        document.getElementById('username-input').value = admin.username;
-        document.getElementById('password-input').value = admin.password;
-      }
-      document.getElementById('login-error-msg').classList.add('hidden');
-    }
-
     function fillStudentDemo() {
       const select = document.getElementById('student-demo-select');
       const student = getStudentAccount(select.value);
@@ -813,6 +861,19 @@
       }
     }
 
+    function installPwa() {
+      if (!deferredInstallPrompt) {
+        showToast("Gunakan menu browser 'Tambahkan ke layar utama' untuk memasang aplikasi", "info");
+        return;
+      }
+
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.finally(() => {
+        deferredInstallPrompt = null;
+        document.getElementById('btn-install-pwa')?.classList.add('hidden');
+      });
+    }
+
     function requestNotificationPermission() {
       if (!("Notification" in window)) {
         alert("Browser Anda tidak mendukung Notifikasi Perangkat.");
@@ -837,7 +898,8 @@
 
       const options = {
         body: body,
-        icon: "https://cdn-icons-png.flaticon.com/512/2991/2997300.png",
+        icon: "./icons/icon-192.png",
+        badge: "./icons/icon-192.png",
         tag: 'tugasku-' + Date.now()
       };
 
@@ -885,6 +947,8 @@
         document.getElementById('announcement-form-card').classList.add('hidden');
         document.getElementById('group-admin-panel').classList.add('hidden');
         document.getElementById('group-view-description').innerText = 'Pembagian kelompok ditetapkan oleh ketua kelas. Kamu hanya dapat melihat hasilnya.';
+        manualGroupDraft = [];
+        renderManualEditor();
       }
 
       closeTaskModal();
@@ -968,6 +1032,15 @@
             <h3 class="font-bold text-slate-800 text-sm mb-2 ${isDone ? 'line-through text-slate-400' : ''}">${escapeHtml(task.title)}</h3>
             
             ${task.description ? `<p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(task.description)}</p>` : ''}
+
+            ${safeUrl(task.link) ? `
+              <a href="${escapeHtml(safeUrl(task.link))}" target="_blank" rel="noopener noreferrer"
+                class="mb-4 inline-flex items-center gap-1.5 px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-[11px] font-semibold transition-all">
+                <i class="fa-solid fa-link text-[10px]"></i>
+                <span>Buka Link Tugas</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+              </a>
+            ` : ''}
           </div>
 
           <div>
@@ -1068,7 +1141,7 @@
     // TASK FORM MANAGEMENT WITH TEACHER FIELD
     function openTaskModal(taskId = null) {
       if (!isAdminUser()) {
-        showToast("Hanya ketua kelas (rafael, naufal, adhyastha) yang dapat mengelola tugas.", "info");
+        showToast("Hanya 4 akun admin resmi yang dapat mengelola tugas.", "info");
         return;
       }
 
@@ -1081,9 +1154,10 @@
 
         document.getElementById('modal-title').innerText = "Edit Tugas";
         document.getElementById('task-id').value = task.id;
-        document.getElementById('task-subject').value = task.subject;
+        setTaskSubject(task.subject);
         document.getElementById('task-teacher').value = task.teacher || '';
         document.getElementById('task-title').value = task.title;
+        document.getElementById('task-link').value = task.link || '';
         document.getElementById('task-description').value = task.description || '';
         document.getElementById('task-date').value = task.dueDate;
         document.getElementById('task-time').value = task.dueTime;
@@ -1106,6 +1180,21 @@
       }
 
       document.getElementById('task-modal').classList.remove('hidden');
+    }
+
+    function setTaskSubject(value) {
+      const select = document.getElementById('task-subject');
+      if (!select) return;
+
+      const subject = value || '';
+      const exists = Array.from(select.options).some(option => option.value === subject);
+      if (subject && !exists) {
+        const legacyOption = document.createElement('option');
+        legacyOption.value = subject;
+        legacyOption.textContent = `${subject} (data lama)`;
+        select.appendChild(legacyOption);
+      }
+      select.value = subject;
     }
 
     function closeTaskModal() {
@@ -1142,18 +1231,30 @@
       
       // Strict guard checking
       if (!isAdminUser()) {
-        showToast("Hanya akun rafael, naufal, atau adhyastha yang dapat menyimpan tugas!", "info");
+        showToast("Hanya 4 akun admin resmi yang dapat menyimpan tugas!", "info");
         return;
       }
 
       const id = document.getElementById('task-id').value;
-      const subject = document.getElementById('task-subject').value.trim();
+      const subject = document.getElementById('task-subject').value;
       const teacher = document.getElementById('task-teacher').value.trim();
       const title = document.getElementById('task-title').value.trim();
       const description = document.getElementById('task-description').value.trim();
       const dueDate = document.getElementById('task-date').value;
       const dueTime = document.getElementById('task-time').value;
       const type = document.querySelector('input[name="taskType"]:checked').value;
+
+      if (!subject) {
+        showToast("Pilih mata pelajaran terlebih dahulu", "info");
+        return;
+      }
+
+      const rawLink = document.getElementById('task-link').value.trim();
+      const link = rawLink ? safeUrl(rawLink) : '';
+      if (rawLink && !link) {
+        showToast("Link tugas tidak valid. Gunakan URL http:// atau https://", "info");
+        return;
+      }
 
       let groupSize = null;
       if (type === 'Kelompok') {
@@ -1166,7 +1267,13 @@
         const index = tasks.findIndex(t => t.id === id);
         if (index === -1) return;
 
-        tasks[index] = { ...tasks[index], subject, teacher, title, description, dueDate, dueTime, type, groupSize };
+        const existing = tasks[index];
+        tasks[index] = {
+          ...existing,
+          subject, teacher, title, description, link, dueDate, dueTime, type, groupSize,
+          groups: type === 'Kelompok' && Array.isArray(existing.groups) ? existing.groups : [],
+          groupConfig: type === 'Kelompok' ? (existing.groupConfig || null) : null
+        };
 
         // Deadline changed → allow a fresh reminder notification
         notifiedTasks.delete(id);
@@ -1177,7 +1284,9 @@
         // Create
         const newTask = {
           id: 'task-' + Date.now(),
-          subject, teacher, title, description, dueDate, dueTime, type, groupSize,
+          subject, teacher, title, description, link, dueDate, dueTime, type, groupSize,
+          groups: [],
+          groupConfig: null,
           completedBy: []
         };
         tasks.unshift(newTask);
@@ -1717,6 +1826,16 @@
     }
 
     // UTILS & NOTIFICATIONS
+    function safeUrl(value) {
+      if (!value) return '';
+      try {
+        const url = new URL(String(value));
+        return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+      } catch {
+        return '';
+      }
+    }
+
     function escapeHtml(value = '') {
       return String(value).replace(/[&<>"']/g, char => ({
         '&': '&amp;',
