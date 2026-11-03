@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TugasKu Remind - Pengingat Tugas Kelas</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- APP CONTAINER -->
+  <div id="app" class="flex-1 flex flex-col">
+
+    <!-- LOGIN SCREEN (Default display if not logged in) -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8 border border-slate-100">
+        
+        <!-- Logo & Title -->
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-14 h-14 bg-sky-100 text-sky-600 rounded-2xl mb-3 shadow-inner">
+            <i class="fa-solid fa-graduation-cap text-2xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-slate-800">TugasKu Remind</h1>
+          <p class="text-xs text-slate-500 mt-1">Sistem Pengingat Tugas Kelas Interaktif</p>
+        </div>
+
+        <!-- Notification Permission Alert Banner -->
+        <div id="notif-permission-banner" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-bell text-amber-500 text-sm"></i>
+            <span>Aktifkan pengingat di perangkat?</span>
+          </div>
+          <button onclick="requestNotificationPermission()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition-all">
+            Izinkan
+          </button>
+        </div>
+
+        <!-- Form Login (satu tampilan untuk admin & murid) -->
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <i class="fa-solid fa-user text-sm"></i>
+              </span>
+              <input type="text" id="username-input" placeholder="Masukkan username" required autocomplete="username"
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:bg-white transition-all">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <i class="fa-solid fa-lock text-sm"></i>
+              </span>
+              <input type="password" id="password-input" placeholder="••••••••" required
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:bg-white transition-all">
+            </div>
+          </div>
+
+          <p id="login-error-msg" class="text-xs text-rose-500 hidden font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="login-error-text">Kredensial tidak valid</span>
+          </p>
+
+          <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl shadow-md shadow-sky-200 transition-all text-sm flex items-center justify-center gap-2">
+            <span>Masuk Akun</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </form>
+
+        <!-- Demo Accounts Grid -->
+        <div class="mt-6 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <p class="text-xs font-semibold text-slate-500 mb-2 flex items-center justify-between">
+            <span><i class="fa-solid fa-bolt text-amber-500"></i> Akun Admin Resmi & Siswa:</span>
+          </p>
+          <div class="space-y-1.5 text-xs">
+            <div class="grid grid-cols-3 gap-1">
+              <button onclick="fillAdminDemo('rafael')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
+                🔑 rafael
+              </button>
+              <button onclick="fillAdminDemo('naufal')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
+                🔑 naufal
+              </button>
+              <button onclick="fillAdminDemo('adhyastha')" class="px-2 py-1.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 text-purple-800 font-medium text-left truncate">
+                🔑 adhyastha
+              </button>
+            </div>
+            <div class="flex gap-1.5">
+              <select id="student-demo-select" class="flex-1 min-w-0 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 text-xs focus:outline-none focus:border-sky-500">
+                <option value="">Pilih akun murid...</option>
+              </select>
+              <button onclick="fillStudentDemo()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 font-semibold whitespace-nowrap">
+                Isi
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD (Hidden until logged in) -->
+    <div id="main-dashboard" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
+      
+      <!-- SIDEBAR -->
+      <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col">
+        <!-- Brand Header -->
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 bg-sky-500 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-sky-900">
+              <i class="fa-solid fa-book-open text-sm"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-sm tracking-wide text-slate-100">TugasKu</h2>
+              <span class="text-[10px] text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800" id="user-role-badge">Murid</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile Card in Sidebar -->
+        <div class="p-4 mx-3 my-3 bg-slate-800/60 rounded-xl border border-slate-700/50 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 text-white font-bold flex items-center justify-center text-sm" id="user-avatar-initials">
+            M
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <p class="text-xs font-semibold text-slate-200 truncate" id="user-display-name">Ahmad Murid</p>
+            <p class="text-[11px] text-slate-400 truncate" id="user-display-email">murid@sekolah.sch.id</p>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 p-3 space-y-1">
+          <button onclick="switchView('tasks')" id="nav-tasks" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-sky-600 text-white transition-all">
+            <i class="fa-solid fa-list-check text-base"></i>
+            <span>Daftar Tugas</span>
+          </button>
+
+          <button onclick="switchView('announcements')" id="nav-announcements" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+            <i class="fa-solid fa-bullhorn text-base text-rose-400"></i>
+            <span>Pengumuman Kelas</span>
+          </button>
+          
+          <button id="nav-create-task" onclick="openTaskModal()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all hidden">
+            <i class="fa-solid fa-plus-circle text-base text-emerald-400"></i>
+            <span>Buat Tugas Baru</span>
+          </button>
+
+          <button onclick="switchView('groups')" id="nav-groups" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+            <i class="fa-solid fa-users text-base text-amber-400"></i>
+            <span>Kelompok Belajar</span>
+          </button>
+        </nav>
+
+        <!-- Logout Footer -->
+        <div class="p-3 border-t border-slate-800">
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 rounded-xl transition-all">
+            <i class="fa-solid fa-right-from-bracket text-sm"></i>
+            <span>Keluar Akun</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="flex-1 bg-slate-50 p-4 md:p-8 overflow-y-auto">
+        
+        <!-- TOP HEADER BAR -->
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold text-slate-800" id="page-title">Daftar Tugas Kelas</h1>
+            <p class="text-xs text-slate-500 mt-0.5" id="page-subtitle">Pantau dan selesaikan tugas tepat waktu</p>
+          </div>
+
+          <!-- Action Buttons for Admin -->
+        <div class="flex items-center gap-3" id="header-actions">
+          <button id="btn-device-notif" onclick="requestNotificationPermission()" class="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
+            <i class="fa-solid fa-bell-ring text-sky-500"></i>
+            <span id="btn-notif-label">Izinkan Notifikasi Perangkat</span>
+          </button>
+          <button id="btn-admin-add" onclick="openTaskModal()" class="hidden px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Tambah Tugas</span>
+          </button>
+        </div>
+      </header>
+
+        <!-- VIEW 1: TASKS LIST VIEW -->
+        <section id="view-tasks" class="space-y-6">
+          
+          <!-- Filters & Search -->
+          <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm text-xs font-medium">
+              <button onclick="setFilter('all')" id="filter-all" class="px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 font-semibold transition-all">Semua</button>
+              <button onclick="setFilter('pending')" id="filter-pending" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">Belum Selesai</button>
+              <button onclick="setFilter('urgent')" id="filter-urgent" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Mendesak
+              </button>
+              <button onclick="setFilter('completed')" id="filter-completed" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">Selesai</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative min-w-[240px]">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="task-search" oninput="renderTasks()" placeholder="Cari pelajaran atau judul..." 
+                class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500 shadow-sm">
+            </div>
+          </div>
+
+          <!-- Tasks Stats summary -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-clipboard-list"></i>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium">Total Tugas</p>
+                <p class="text-base font-bold text-slate-800" id="stat-total">0</p>
+              </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium">Belum Selesai</p>
+                <p class="text-base font-bold text-slate-800" id="stat-pending">0</p>
+              </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium">Selesai</p>
+                <p class="text-base font-bold text-slate-800" id="stat-completed">0</p>
+              </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium">Tugas Kelompok</p>
+                <p class="text-base font-bold text-slate-800" id="stat-groups">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TASK GRID CONTAINER -->
+          <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic Task Cards Render Here -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="empty-state" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
+            <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+              <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-700">Tidak ada tugas ditemukan</h3>
+            <p class="text-xs text-slate-400 mt-1">Belum ada tugas dalam kategori ini atau belum dibuat oleh Ketua Kelas.</p>
+          </div>
+
+        </section>
+
+        <!-- VIEW 2: GROUP GENERATOR / VIEWER -->
+        <section id="view-groups" class="hidden space-y-6">
+          <div class="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+            <div class="max-w-2xl">
+              <h2 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-users-gear text-sky-600"></i> Pembagian Kelompok Belajar
+              </h2>
+              <p id="group-view-description" class="text-xs text-slate-500 mb-4">Pilih tugas kelompok untuk melihat pembagian yang ditetapkan ketua kelas.</p>
+
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Tugas Kelompok</label>
+              <select id="group-task-select" onchange="generateGroupsView()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+                <!-- Options populated via JS -->
+              </select>
+            </div>
+
+            <!-- Admin-only group configuration -->
+            <div id="group-admin-panel" class="hidden border-t border-slate-100 pt-4 space-y-4">
+              <div class="flex rounded-xl bg-slate-100 p-1 max-w-md text-xs font-semibold">
+                <button id="gm-mode-random" onclick="setGroupMode('random')" class="flex-1 py-2 rounded-lg transition-all bg-white text-sky-700 shadow-sm">
+                  <i class="fa-solid fa-shuffle mr-1"></i> Acak Otomatis
+                </button>
+                <button id="gm-mode-manual" onclick="setGroupMode('manual')" class="flex-1 py-2 rounded-lg transition-all">
+                  <i class="fa-solid fa-hand-pointer mr-1"></i> Atur Manual
+                </button>
+              </div>
+
+              <!-- Option 1: random generator -->
+              <div id="group-random-panel" class="p-4 bg-sky-50 border border-sky-100 rounded-xl space-y-3">
+                <div>
+                  <p class="text-xs font-semibold text-sky-900 flex items-center gap-1.5"><i class="fa-solid fa-shuffle"></i> Opsi 1 — Acak Otomatis</p>
+                  <p class="text-[11px] text-sky-800/80 mt-0.5">Sistem mengacak 19 murid dan membaginya secara merata sesuai kapasitas.</p>
+                </div>
+                <div class="flex flex-wrap items-end gap-3">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-sky-900 mb-1">Kapasitas per kelompok</label>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <button type="button" data-capacity="2" onclick="setRandomCapacity(2)" class="btn-gcapacity px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">2</button>
+                      <button type="button" data-capacity="3" onclick="setRandomCapacity(3)" class="btn-gcapacity px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">3</button>
+                      <button type="button" data-capacity="4" onclick="setRandomCapacity(4)" class="btn-gcapacity px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">4</button>
+                      <input type="number" id="random-capacity" min="2" max="10" value="3" oninput="syncRandomCapacityButtons()"
+                        class="w-16 px-2 py-1.5 bg-white border border-sky-200 rounded-lg text-xs focus:outline-none focus:border-sky-500">
+                    </div>
+                  </div>
+                  <button type="button" onclick="generateRandomGroups()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-dice"></i>
+                    <span>Acak &amp; Simpan</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Option 2: manual assignment -->
+              <div id="group-manual-panel" class="hidden p-4 bg-amber-50 border border-amber-100 rounded-xl space-y-3">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p class="text-xs font-semibold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-hand-pointer"></i> Opsi 2 — Atur Manual</p>
+                    <p class="text-[11px] text-amber-800/80 mt-0.5">Centang murid pada tiap kelompok. Satu murid hanya bisa masuk satu kelompok.</p>
+                  </div>
+                  <button type="button" onclick="addManualGroup()" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-all">
+                    <i class="fa-solid fa-plus"></i> Tambah Kelompok
+                  </button>
+                </div>
+                <div id="manual-groups-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <p id="manual-summary" class="text-[11px] font-medium text-amber-900"></p>
+                  <button type="button" onclick="saveManualGroups()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan Pembagian</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved groups (read-only for students) -->
+          <div id="groups-result-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Group cards render here -->
+          </div>
+        </section>
+
+        <!-- VIEW 3: ANNOUNCEMENTS -->
+        <section id="view-announcements" class="hidden space-y-6">
+          <!-- Admin Composer -->
+          <div id="announcement-form-card" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-bullhorn text-rose-500"></i> Kirim Pengumuman Kelas
+            </h2>
+            <p class="text-xs text-slate-500 mb-4">Pengumuman akan tampil untuk seluruh murid dan dikirim sebagai notifikasi perangkat.</p>
+            <form id="announcement-form" onsubmit="handleSendAnnouncement(event)" class="space-y-3 max-w-2xl">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Pengumuman</label>
+                <input type="text" id="announcement-title" required maxlength="100" placeholder="Contoh: Ulangan Matematika Diundur"
+                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Isi Pengumuman</label>
+                <textarea id="announcement-message" rows="3" required maxlength="500" placeholder="Tulis informasi yang ingin disampaikan..."
+                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500"></textarea>
+              </div>
+              <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                  <i class="fa-solid fa-paper-plane"></i>
+                  <span>Kirim Pengumuman</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Announcements List -->
+          <div>
+            <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+              <i class="fa-regular fa-bell text-slate-400"></i> Pengumuman Terbaru
+            </h2>
+            <div id="announcements-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            <div id="announcements-empty" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
+              <div class="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-regular fa-bell-slash"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-slate-700">Belum ada pengumuman</h3>
+              <p class="text-xs text-slate-400 mt-1">Ketua kelas belum mengirim pengumuman apa pun.</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- MODAL: ADD / EDIT TASK (Admin Only) -->
+  <div id="task-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2" id="modal-title">
+          <i class="fa-solid fa-plus-circle text-sky-400"></i> Buat Tugas Baru
+        </h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-white transition-all text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="task-form" onsubmit="handleSaveTask(event)" class="p-6 space-y-4">
+        <input type="hidden" id="task-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
+            <input type="text" id="task-subject" placeholder="Contoh: Matematika" required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Guru / Pengampu</label>
+            <input type="text" id="task-teacher" placeholder="Contoh: Pak Budi, S.Pd." required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Tugas</label>
+          <input type="text" id="task-title" placeholder="Contoh: Latihan Soal Aljabar Bab 3" required maxlength="120"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi Tugas</label>
+          <textarea id="task-description" rows="3" required maxlength="500" placeholder="Jelaskan instruksi pengerjaan, halaman, atau ketentuan pengumpulan..."
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tenggat Waktu (Tanggal)</label>
+            <input type="date" id="task-date" required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Jam</label>
+            <input type="time" id="task-time" required
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <!-- Task Type (Individu vs Kelompok) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe Tugas</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2.5 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="taskType" value="Individu" checked onclick="toggleGroupOptions(false)" class="text-sky-600 focus:ring-sky-500">
+              <span class="text-xs font-medium text-slate-700">Individu</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="taskType" value="Kelompok" onclick="toggleGroupOptions(true)" class="text-sky-600 focus:ring-sky-500">
+              <span class="text-xs font-medium text-slate-700">Kelompok</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Group Size Selection (Hidden by default) -->
+        <div id="group-size-wrapper" class="hidden p-3 bg-sky-50 rounded-xl border border-sky-100 space-y-2">
+          <label class="block text-xs font-semibold text-sky-900">Jumlah Anggota per Kelompok</label>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" data-size="2" onclick="setGroupSize(2)" class="btn-gsize px-3 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">2 Orang</button>
+            <button type="button" data-size="3" onclick="setGroupSize(3)" class="btn-gsize px-3 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">3 Orang</button>
+            <button type="button" data-size="4" onclick="setGroupSize(4)" class="btn-gsize px-3 py-1.5 bg-white border border-sky-200 rounded-lg text-xs font-semibold text-sky-700 hover:bg-sky-600 hover:text-white transition-all">4 Orang</button>
+            <input type="number" id="group-size-custom" min="2" max="10" placeholder="Lainnya..." oninput="syncGroupSizeButtons()"
+              class="w-20 px-2 py-1.5 bg-white border border-sky-200 rounded-lg text-xs focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition-all">
+            Batal
+          </button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>Simpan Tugas</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700">
+      <div id="toast-icon" class="text-emerald-400">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <p id="toast-message" class="text-xs font-medium">Pesan notifikasi di sini</p>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    // STRICT ADMIN CREDENTIALS (ONLY THESE 3 ACCOUNTS ARE AUTHORIZED ADMINS)
+    const ADMIN_ACCOUNTS = [
+      { username: "rafael", password: "rafael123", name: "Rafael (Admin)" },
+      { username: "naufal", password: "naufal123", name: "Naufal (Admin)" },
+      { username: "adhyastha", password: "atta123", name: "Adhyastha (Admin)" }
+    ];
+
+    // 19 STUDENT ACCOUNTS (username disimpan lowercase, password namapanggilan123)
+    const STUDENT_ACCOUNTS = [
+      { name: "Adhyastha Abdillah Al Fattah", username: "adhyastha", password: "adhyastha123" },
+      { name: "Agha Rifqi Faizal", username: "agha", password: "agha123" },
+      { name: "Azzam Hanindhito Anaro", username: "azzam", password: "azzam123" },
+      { name: "Chaedar Dwi Osama", username: "osama", password: "osama123" },
+      { name: "Danish Hasan Azzaki", username: "danish", password: "danish123" },
+      { name: "Faiz Akila Wijaya", username: "faiz", password: "faiz123" },
+      { name: "Fakhri adis hersa dzaki", username: "fakhri", password: "fakhri123" },
+      { name: "Haidar Aulia Alfarizky", username: "alfarizky", password: "alfarizky123" },
+      { name: "Haidar Nafi Attarmidzi", username: "nafi", password: "nafi123" },
+      { name: "Muhammad Abdurrahman Al Fatih", username: "fatih", password: "fatih123" },
+      { name: "Muhammad Bahruddin Ath-Thoriq", username: "thoriq", password: "thoriq123" },
+      { name: "Muhammad Naufal Al-Khalifi", username: "naufal", password: "naufal123" },
+      { name: "Muhammad Rizqi Nashrulloh", username: "rizqi", password: "rizqi123" },
+      { name: "Rafael Kevin Ardiyansyah", username: "rafael", password: "rafael123" },
+      { name: "Wafa Iliansyah Aqeel", username: "wafa", password: "wafa123" },
+      { name: "Zaid Axelle Sujatmianto", username: "axelle", password: "axelle123" },
+      { name: "Gavans Dzaky Nugroho Hernando", username: "nando", password: "nando123" },
+      { name: "Jiratullah Muzhaffar al-Tsaqib", username: "affar", password: "affar123" },
+      { name: "Muhammad Kayyis Maulana El Yafye", username: "kayyis", password: "kayyis123" }
+    ];
+
+    // INITIAL SAMPLE TASKS
+    const INITIAL_TASKS = [
+      {
+        id: "task-1",
+        subject: "Matematika",
+        teacher: "Pak Budi, S.Pd.",
+        title: "Latihan Soal Aljabar Bab 3 Halaman 88",
+        dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+        dueTime: "23:59",
+        type: "Individu",
+        groupSize: null,
+        groups: [],
+        groupConfig: null,
+        description: "Kerjakan seluruh soal aljabar di halaman 88, lalu tulis langkah pengerjaannya di buku tugas. Dikumpulkan di meja guru sebelum jam istirahat pertama.",
+        completedBy: []
+      },
+      {
+        id: "task-2",
+        subject: "Bahasa Inggris",
+        teacher: "Bu Anita, M.Pd.",
+        title: "Presentasi Kelompok: Conversation Script",
+        dueDate: new Date(Date.now() + 172800000).toISOString().split('T')[0], // 2 days
+        dueTime: "10:00",
+        type: "Kelompok",
+        groupSize: 3,
+        groups: [],
+        groupConfig: null,
+        description: "Setiap kelompok membuat naskah dialog percakapan berdurasi minimal 3 menit, lalu mempresentasikannya di depan kelas.",
+        completedBy: []
+      }
+    ];
+
+    // APP STATE
+    let currentUser = null;
+    let tasks = [];
+    let announcements = [];
+    let currentFilter = 'all';
+    let groupMode = 'random';
+    let manualGroupDraft = [];
+    let notifiedTasks = new Set(); // To prevent duplicate browser notifications
+
+    // INITIALIZATION
+    window.onload = function() {
+      // Load saved tasks or set defaults (with migration from old "notes" field)
+      const savedTasks = readStorage('tugasku_tasks', null);
+      if (Array.isArray(savedTasks)) {
+        tasks = savedTasks.map(task => ({
+          ...task,
+          description: task.description ?? task.notes ?? '',
+          completedBy: Array.isArray(task.completedBy) ? task.completedBy : [],
+          groups: Array.isArray(task.groups) ? task.groups : [],
+          groupConfig: task.groupConfig || null
+        }));
+      } else {
+        tasks = INITIAL_TASKS;
+        saveTasksToStorage();
+      }
+
+      // Load saved announcements
+      const savedAnnouncements = readStorage('tugasku_announcements', []);
+      announcements = Array.isArray(savedAnnouncements) ? savedAnnouncements : [];
+
+      // Restore notification history so users are not spammed after refresh
+      const savedNotified = readStorage('tugasku_notified', []);
+      notifiedTasks = new Set(Array.isArray(savedNotified) ? savedNotified : []);
+
+      // Populate student demo account selector (login helper)
+      const demoSelect = document.getElementById('student-demo-select');
+      if (demoSelect) {
+        STUDENT_ACCOUNTS.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.username;
+          option.textContent = student.name;
+          demoSelect.appendChild(option);
+        });
+      }
+
+      syncRandomCapacityButtons();
+
+      // Check Notification Permission Status
+      checkNotificationStatus();
+
+      // Check existing session and re-validate its role/identity
+      const savedUser = localStorage.getItem('tugasku_user');
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          if (isValidSession(user)) {
+            currentUser = user;
+            showDashboard();
+          } else {
+            localStorage.removeItem('tugasku_user');
+          }
+        } catch {
+          localStorage.removeItem('tugasku_user');
+        }
+      }
+
+      // Register service worker (required for notifications on Chrome Android)
+      if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+
+      // Start countdown & device notification checker loop
+      setInterval(updateCountdownsAndCheckNotifications, 1000);
+    };
+
+    function saveTasksToStorage() {
+      localStorage.setItem('tugasku_tasks', JSON.stringify(tasks));
+    }
+
+    function saveAnnouncementsToStorage() {
+      localStorage.setItem('tugasku_announcements', JSON.stringify(announcements));
+    }
+
+    function saveNotifiedToStorage() {
+      localStorage.setItem('tugasku_notified', JSON.stringify(Array.from(notifiedTasks)));
+    }
+
+    function readStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function isValidSession(user) {
+      if (!user || typeof user !== 'object') return false;
+      if (user.role === 'admin') {
+        return ADMIN_ACCOUNTS.some(a => a.username === user.username);
+      }
+      if (user.role === 'student') {
+        return STUDENT_ACCOUNTS.some(s => s.username === user.username);
+      }
+      return false;
+    }
+
+    function isAdminUser() {
+      return !!(currentUser && currentUser.role === 'admin' &&
+        ADMIN_ACCOUNTS.some(a => a.username.toLowerCase() === String(currentUser.username).toLowerCase()));
+    }
+
+    function getStudentAccount(username) {
+      return STUDENT_ACCOUNTS.find(s => s.username === username);
+    }
+
+    function studentName(username) {
+      return getStudentAccount(username)?.name || username;
+    }
+
+    // AUTHENTICATION (single login form, role detected from credentials)
+    function fillAdminDemo(adminUser) {
+      const admin = ADMIN_ACCOUNTS.find(a => a.username === adminUser);
+      if (admin) {
+        document.getElementById('username-input').value = admin.username;
+        document.getElementById('password-input').value = admin.password;
+      }
+      document.getElementById('login-error-msg').classList.add('hidden');
+    }
+
+    function fillStudentDemo() {
+      const select = document.getElementById('student-demo-select');
+      const student = getStudentAccount(select.value);
+
+      if (!student) {
+        showToast("Pilih akun murid terlebih dahulu", "info");
+        return;
+      }
+
+      document.getElementById('username-input').value = student.username;
+      document.getElementById('password-input').value = student.password;
+      document.getElementById('login-error-msg').classList.add('hidden');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('username-input').value.trim().toLowerCase();
+      const password = document.getElementById('password-input').value.trim();
+      const errorMsg = document.getElementById('login-error-msg');
+      const errorText = document.getElementById('login-error-text');
+
+      errorMsg.classList.add('hidden');
+
+      // Admin credentials take precedence (strict RBAC)
+      const matchedAdmin = ADMIN_ACCOUNTS.find(a => a.username === username && a.password === password);
+      if (matchedAdmin) {
+        currentUser = {
+          username: matchedAdmin.username,
+          name: matchedAdmin.name,
+          email: `${matchedAdmin.username}@sekolah.sch.id`,
+          role: 'admin'
+        };
+      } else {
+        const matchedStudent = STUDENT_ACCOUNTS.find(s => s.username === username && s.password === password);
+        if (!matchedStudent) {
+          errorText.innerText = "Username atau password salah. Periksa kembali akunmu.";
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        currentUser = {
+          username: matchedStudent.username,
+          name: matchedStudent.name,
+          email: `${matchedStudent.username}@sekolah.sch.id`,
+          role: 'student'
+        };
+      }
+
+      localStorage.setItem('tugasku_user', JSON.stringify(currentUser));
+      showToast(`Selamat datang, ${currentUser.name}!`, "success");
+      showDashboard();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('tugasku_user');
+      currentUser = null;
+      closeTaskModal();
+      currentFilter = 'all';
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('main-dashboard').classList.add('hidden');
+      document.getElementById('login-form').reset();
+      showToast("Anda telah keluar akun", "info");
+    }
+
+    // WEB NOTIFICATIONS API INTEGRATION
+    function checkNotificationStatus() {
+      const banner = document.getElementById('notif-permission-banner');
+      const btnLabel = document.getElementById('btn-notif-label');
+
+      if (!("Notification" in window)) {
+        if (banner) banner.classList.add('hidden');
+        if (btnLabel) btnLabel.innerText = "Notifikasi Perangkat Tidak Didukung";
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        if (banner) banner.classList.add('hidden');
+        if (btnLabel) btnLabel.innerText = "Notifikasi Perangkat Aktif";
+      } else if (Notification.permission === "denied") {
+        if (banner) banner.classList.add('hidden');
+        if (btnLabel) btnLabel.innerText = "Notifikasi Perangkat Ditolak";
+      }
+    }
+
+    function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        alert("Browser Anda tidak mendukung Notifikasi Perangkat.");
+        return;
+      }
+
+      Notification.requestPermission().then(permission => {
+        checkNotificationStatus();
+        if (permission === "granted") {
+          showToast("Izin notifikasi perangkat diberikan!", "success");
+          sendDeviceNotification("TugasKu Remind", "Notifikasi pengingat tenggat waktu tugas telah aktif di perangkat Anda.");
+        } else if (permission === "denied") {
+          showToast("Notifikasi diblokir. Aktifkan lewat pengaturan situs di browser.", "info");
+        } else {
+          showToast("Izin notifikasi belum diberikan", "info");
+        }
+      });
+    }
+
+    function sendDeviceNotification(title, body) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+      const options = {
+        body: body,
+        icon: "https://cdn-icons-png.flaticon.com/512/2991/2997300.png",
+        tag: 'tugasku-' + Date.now()
+      };
+
+      try {
+        new Notification(title, options);
+      } catch {
+        // Chrome Android only allows notifications through a service worker
+        if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready
+            .then(reg => reg.showNotification(title, options))
+            .catch(() => {});
+        }
+      }
+    }
+
+    // UI DISPLAY MANAGEMENT
+    function showDashboard() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('main-dashboard').classList.remove('hidden');
+
+      const roleBadge = document.getElementById('user-role-badge');
+      const navCreateTask = document.getElementById('nav-create-task');
+      const btnAdminAdd = document.getElementById('btn-admin-add');
+
+      document.getElementById('user-display-name').innerText = currentUser.name;
+      document.getElementById('user-display-email').innerText = currentUser.email;
+      document.getElementById('user-avatar-initials').innerText = currentUser.name.charAt(0).toUpperCase();
+
+      // Check strict admin privilege
+      const isAdmin = isAdminUser();
+
+      if (isAdmin) {
+        roleBadge.innerText = 'Admin / Pengampu Resmi';
+        roleBadge.className = 'text-[10px] text-purple-300 bg-purple-950 px-2 py-0.5 rounded-full border border-purple-800';
+        navCreateTask.classList.remove('hidden');
+        btnAdminAdd.classList.remove('hidden');
+        document.getElementById('announcement-form-card').classList.remove('hidden');
+        document.getElementById('group-admin-panel').classList.remove('hidden');
+        document.getElementById('group-view-description').innerText = 'Sebagai ketua kelas, kamu dapat mengacak otomatis atau mengatur kelompok secara manual untuk setiap tugas kelompok.';
+      } else {
+        roleBadge.innerText = 'Murid / Siswa';
+        roleBadge.className = 'text-[10px] text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-800';
+        navCreateTask.classList.add('hidden');
+        btnAdminAdd.classList.add('hidden');
+        document.getElementById('announcement-form-card').classList.add('hidden');
+        document.getElementById('group-admin-panel').classList.add('hidden');
+        document.getElementById('group-view-description').innerText = 'Pembagian kelompok ditetapkan oleh ketua kelas. Kamu hanya dapat melihat hasilnya.';
+      }
+
+      closeTaskModal();
+      setFilter('all');
+      switchView('tasks');
+      renderAnnouncements();
+      populateGroupTaskSelect();
+      checkNotificationStatus();
+    }
+
+    // RENDER TASKS WITH TEACHER NAME DISPLAY
+    function renderTasks() {
+      if (!currentUser) return;
+
+      const container = document.getElementById('tasks-container');
+      const emptyState = document.getElementById('empty-state');
+      const searchQuery = document.getElementById('task-search').value.toLowerCase().trim();
+      
+      container.innerHTML = '';
+
+      const isAdmin = isAdminUser();
+
+      let filtered = tasks.filter(task => {
+        const matchesSearch = (task.subject || '').toLowerCase().includes(searchQuery) ||
+                              (task.title || '').toLowerCase().includes(searchQuery) ||
+                              (task.teacher || '').toLowerCase().includes(searchQuery) ||
+                              (task.description || '').toLowerCase().includes(searchQuery);
+        const isDone = task.completedBy.includes(currentUser.username);
+        
+        const dueDateTime = new Date(`${task.dueDate}T${task.dueTime}`).getTime();
+        const now = Date.now();
+        const isUrgent = (dueDateTime - now > 0) && (dueDateTime - now < 86400000);
+
+        if (!matchesSearch) return false;
+
+        if (currentFilter === 'pending') return !isDone;
+        if (currentFilter === 'completed') return isDone;
+        if (currentFilter === 'urgent') return !isDone && isUrgent;
+        return true;
+      });
+
+      // Update Statistics
+      document.getElementById('stat-total').innerText = tasks.length;
+      document.getElementById('stat-pending').innerText = tasks.filter(t => !t.completedBy.includes(currentUser.username)).length;
+      document.getElementById('stat-completed').innerText = tasks.filter(t => t.completedBy.includes(currentUser.username)).length;
+      document.getElementById('stat-groups').innerText = tasks.filter(t => t.type === 'Kelompok').length;
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach(task => {
+        const isDone = task.completedBy.includes(currentUser.username);
+        
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between ${isDone ? 'border-emerald-200 bg-emerald-50/20 opacity-80' : 'border-slate-200 shadow-sm hover:shadow-md'}`;
+        
+        card.innerHTML = `
+          <div>
+            <!-- Header Badge & Subject -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 text-[11px] font-bold border border-sky-100 truncate">
+                ${escapeHtml(task.subject)}
+              </span>
+              <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 whitespace-nowrap ${task.type === 'Kelompok' ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'bg-slate-100 text-slate-600'}">
+                <i class="fa-solid ${task.type === 'Kelompok' ? 'fa-users' : 'fa-user'} text-[10px]"></i>
+                ${escapeHtml(task.type)} ${task.groupSize ? `(${escapeHtml(task.groupSize)} org)` : ''}
+              </span>
+            </div>
+
+            <!-- Teacher Name Badge -->
+            <div class="flex items-center gap-1.5 text-xs text-slate-500 mb-2 font-medium">
+              <i class="fa-solid fa-chalkboard-user text-slate-400"></i>
+              <span>Guru: <strong class="text-slate-700">${escapeHtml(task.teacher || 'Pengampu Kelas')}</strong></span>
+            </div>
+
+            <!-- Task Title & Description -->
+            <h3 class="font-bold text-slate-800 text-sm mb-2 ${isDone ? 'line-through text-slate-400' : ''}">${escapeHtml(task.title)}</h3>
+            
+            ${task.description ? `<p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(task.description)}</p>` : ''}
+          </div>
+
+          <div>
+            <!-- Deadline Info & Countdown -->
+            <div class="my-3 pt-3 border-t border-slate-100 flex flex-col gap-1">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar text-slate-400"></i> Tenggat:</span>
+                <span class="font-semibold text-slate-700">${formatDate(task.dueDate)} - ${task.dueTime}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500">Sisa Waktu:</span>
+                <span class="font-bold font-mono text-sky-600 countdown-timer" data-target="${task.dueDate}T${task.dueTime}">-</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between gap-2 pt-2">
+              <button onclick="toggleTaskComplete('${task.id}')" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${isDone ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-slate-900 text-white hover:bg-slate-800'}">
+                <i class="fa-solid ${isDone ? 'fa-circle-check text-emerald-600' : 'fa-circle'} text-[10px]"></i>
+                <span>${isDone ? 'Selesai' : 'Tandai Selesai'}</span>
+              </button>
+
+              ${isAdmin ? `
+                <button onclick="editTask('${task.id}')" class="p-2 text-slate-500 hover:text-sky-600 bg-slate-50 hover:bg-sky-50 rounded-xl border border-slate-200 transition-all" title="Edit Tugas">
+                  <i class="fa-solid fa-pen-to-square text-xs"></i>
+                </button>
+                <button onclick="deleteTask('${task.id}')" class="p-2 text-slate-500 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 rounded-xl border border-slate-200 transition-all" title="Hapus Tugas">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateCountdownsAndCheckNotifications();
+    }
+
+    // COUNTDOWN TIMER & BACKGROUND DEVICE NOTIFIER
+    function updateCountdownsAndCheckNotifications() {
+      const timers = document.querySelectorAll('.countdown-timer');
+      const now = new Date().getTime();
+
+      timers.forEach(timer => {
+        const targetStr = timer.getAttribute('data-target');
+        const targetDate = new Date(targetStr).getTime();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+          timer.innerText = "Waktu Habis!";
+          timer.className = "font-bold font-mono text-rose-600 text-xs";
+        } else {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+          
+          const days = Math.floor(hours / 24);
+          const remHours = hours % 24;
+
+          if (days > 0) {
+            timer.innerText = `${days} hr ${remHours}j ${mins}m`;
+          } else {
+            timer.innerText = `${remHours}j ${mins}m ${secs}dtk`;
+          }
+
+          if (hours < 24) {
+            timer.className = "font-bold font-mono text-amber-600 text-xs";
+          } else {
+            timer.className = "font-bold font-mono text-sky-600 text-xs";
+          }
+        }
+      });
+
+      // TRIGGER DEVICE NOTIFICATION FOR URGENT DEADLINES (e.g., <= 1 hour remaining)
+      if (!currentUser) return;
+
+      tasks.forEach(task => {
+        const dueDateTime = new Date(`${task.dueDate}T${task.dueTime}`).getTime();
+        const diffMins = Math.floor((dueDateTime - now) / (1000 * 60));
+        
+        // Notify if task is pending and deadline is within 60 minutes
+        if (diffMins > 0 && diffMins <= 60 && !notifiedTasks.has(task.id)) {
+          const isDone = currentUser && task.completedBy.includes(currentUser.username);
+          if (!isDone) {
+            sendDeviceNotification(
+              `⚠️ Pengingat Tugas: ${task.subject}`,
+              `Tugas "${task.title}" dari ${task.teacher} tersisa ${diffMins} menit lagi!`
+            );
+            notifiedTasks.add(task.id);
+            saveNotifiedToStorage();
+          }
+        }
+      });
+    }
+
+    // TASK FORM MANAGEMENT WITH TEACHER FIELD
+    function openTaskModal(taskId = null) {
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas (rafael, naufal, adhyastha) yang dapat mengelola tugas.", "info");
+        return;
+      }
+
+      const form = document.getElementById('task-form');
+      form.reset();
+
+      if (taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        document.getElementById('modal-title').innerText = "Edit Tugas";
+        document.getElementById('task-id').value = task.id;
+        document.getElementById('task-subject').value = task.subject;
+        document.getElementById('task-teacher').value = task.teacher || '';
+        document.getElementById('task-title').value = task.title;
+        document.getElementById('task-description').value = task.description || '';
+        document.getElementById('task-date').value = task.dueDate;
+        document.getElementById('task-time').value = task.dueTime;
+
+        if (task.type === 'Kelompok') {
+          document.querySelector('input[name="taskType"][value="Kelompok"]').checked = true;
+          toggleGroupOptions(true);
+          setGroupSize(task.groupSize || 2);
+        } else {
+          document.querySelector('input[name="taskType"][value="Individu"]').checked = true;
+          toggleGroupOptions(false);
+        }
+      } else {
+        document.getElementById('modal-title').innerText = "Buat Tugas Baru";
+        document.getElementById('task-id').value = '';
+        document.getElementById('group-size-custom').value = '';
+        document.querySelector('input[name="taskType"][value="Individu"]').checked = true;
+        toggleGroupOptions(false);
+        syncGroupSizeButtons();
+      }
+
+      document.getElementById('task-modal').classList.remove('hidden');
+    }
+
+    function closeTaskModal() {
+      document.getElementById('task-modal').classList.add('hidden');
+    }
+
+    function toggleGroupOptions(show) {
+      document.getElementById('group-size-wrapper').classList.toggle('hidden', !show);
+      if (show && !document.getElementById('group-size-custom').value) {
+        setGroupSize(2);
+      }
+    }
+
+    function setGroupSize(size) {
+      document.getElementById('group-size-custom').value = size;
+      syncGroupSizeButtons();
+    }
+
+    function syncGroupSizeButtons() {
+      const input = document.getElementById('group-size-custom');
+      const value = parseInt(input.value, 10);
+      document.querySelectorAll('.btn-gsize').forEach(btn => {
+        const active = parseInt(btn.dataset.size, 10) === value;
+        btn.classList.toggle('bg-sky-600', active);
+        btn.classList.toggle('text-white', active);
+        btn.classList.toggle('border-sky-600', active);
+        btn.classList.toggle('bg-white', !active);
+        btn.classList.toggle('text-sky-700', !active);
+      });
+    }
+
+    function handleSaveTask(e) {
+      e.preventDefault();
+      
+      // Strict guard checking
+      if (!isAdminUser()) {
+        showToast("Hanya akun rafael, naufal, atau adhyastha yang dapat menyimpan tugas!", "info");
+        return;
+      }
+
+      const id = document.getElementById('task-id').value;
+      const subject = document.getElementById('task-subject').value.trim();
+      const teacher = document.getElementById('task-teacher').value.trim();
+      const title = document.getElementById('task-title').value.trim();
+      const description = document.getElementById('task-description').value.trim();
+      const dueDate = document.getElementById('task-date').value;
+      const dueTime = document.getElementById('task-time').value;
+      const type = document.querySelector('input[name="taskType"]:checked').value;
+
+      let groupSize = null;
+      if (type === 'Kelompok') {
+        groupSize = parseInt(document.getElementById('group-size-custom').value, 10) || 2;
+        groupSize = Math.min(10, Math.max(2, groupSize));
+      }
+
+      if (id) {
+        // Edit
+        const index = tasks.findIndex(t => t.id === id);
+        if (index === -1) return;
+
+        tasks[index] = { ...tasks[index], subject, teacher, title, description, dueDate, dueTime, type, groupSize };
+
+        // Deadline changed → allow a fresh reminder notification
+        notifiedTasks.delete(id);
+        saveNotifiedToStorage();
+
+        showToast("Tugas berhasil diperbarui!", "success");
+      } else {
+        // Create
+        const newTask = {
+          id: 'task-' + Date.now(),
+          subject, teacher, title, description, dueDate, dueTime, type, groupSize,
+          completedBy: []
+        };
+        tasks.unshift(newTask);
+        if (type === 'Kelompok') {
+          showToast("Tugas kelompok diterbitkan. Atur pembagiannya di menu Kelompok Belajar.", "success");
+        } else {
+          showToast("Tugas baru berhasil diterbitkan!", "success");
+        }
+
+        // Broadcast notification to device when new task is added
+        sendDeviceNotification(
+          `📌 Tugas Baru: ${subject}`,
+          `${title} (${teacher}). Tenggat ${formatDate(dueDate)} jam ${dueTime}`
+        );
+      }
+
+      saveTasksToStorage();
+      closeTaskModal();
+      renderTasks();
+      populateGroupTaskSelect();
+    }
+
+    function editTask(id) {
+      openTaskModal(id);
+    }
+
+    function deleteTask(id) {
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas yang dapat menghapus tugas!", "info");
+        return;
+      }
+
+      if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
+        tasks = tasks.filter(t => t.id !== id);
+        notifiedTasks.delete(id);
+        saveNotifiedToStorage();
+        saveTasksToStorage();
+        renderTasks();
+        populateGroupTaskSelect();
+        showToast("Tugas berhasil dihapus", "info");
+      }
+    }
+
+    function toggleTaskComplete(id) {
+      if (!currentUser) return;
+
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      const userIndex = task.completedBy.indexOf(currentUser.username);
+      
+      if (userIndex > -1) {
+        task.completedBy.splice(userIndex, 1);
+        showToast("Status tugas diubah ke belum selesai", "info");
+      } else {
+        task.completedBy.push(currentUser.username);
+        showToast("Selamat! Tugas telah diselesaikan 🎉", "success");
+      }
+
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    // GROUP MANAGEMENT (admin configures, students view the saved result)
+    function populateGroupTaskSelect() {
+      const select = document.getElementById('group-task-select');
+      if (!select) return;
+
+      const previous = select.value;
+      select.innerHTML = '';
+
+      const groupTasks = tasks.filter(t => t.type === 'Kelompok');
+      if (groupTasks.length === 0) {
+        select.innerHTML = '<option value="">Belum ada tugas kelompok tersedia</option>';
+        return;
+      }
+
+      groupTasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.id;
+        const groupCount = Array.isArray(task.groups) ? task.groups.length : 0;
+        const status = groupCount > 0 ? `${groupCount} kelompok` : 'belum dibagi';
+        option.text = `${task.subject}: ${task.title} — ${status}`;
+        select.appendChild(option);
+      });
+
+      if (previous && groupTasks.some(t => t.id === previous)) {
+        select.value = previous;
+      }
+    }
+
+    function selectedGroupTask() {
+      const select = document.getElementById('group-task-select');
+      return select ? tasks.find(t => t.id === select.value) : null;
+    }
+
+    // Deterministic shuffle so every student sees the exact same groups
+    function seededShuffle(list, seedText) {
+      let seed = 0;
+      for (let i = 0; i < seedText.length; i++) {
+        seed = (Math.imul(seed, 31) + seedText.charCodeAt(i)) >>> 0;
+      }
+
+      const random = () => {
+        seed = (seed + 0x6D2B79F5) >>> 0;
+        let t = seed;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+
+      const result = [...list];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function generateGroupsView() {
+      const container = document.getElementById('groups-result-container');
+      if (!container) return;
+
+      const task = selectedGroupTask();
+      if (!task) {
+        container.innerHTML = '<p class="text-xs text-slate-400 col-span-full">Tidak ada tugas kelompok untuk ditampilkan.</p>';
+        renderManualEditor();
+        return;
+      }
+
+      renderSavedGroups(task);
+
+      if (isAdminUser()) {
+        const capacityInput = document.getElementById('random-capacity');
+        if (capacityInput && task.groupSize) {
+          capacityInput.value = Math.min(10, Math.max(2, task.groupSize));
+        }
+        syncRandomCapacityButtons();
+        initializeManualDraft(task);
+      }
+    }
+
+    function renderSavedGroups(task) {
+      const container = document.getElementById('groups-result-container');
+      container.innerHTML = '';
+
+      const groups = Array.isArray(task.groups) ? task.groups : [];
+      if (groups.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-10 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
+            <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
+              <i class="fa-solid fa-users-slash"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-700">Kelompok belum dibagikan</h3>
+            <p class="text-xs text-slate-400 mt-1">${isAdminUser() ? 'Gunakan Opsi 1 atau Opsi 2 di atas untuk membagi kelompok.' : 'Ketua kelas belum membagikan kelompok untuk tugas ini.'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const totalMembers = groups.reduce((sum, group) => sum + (Array.isArray(group.members) ? group.members.length : 0), 0);
+      const modeLabel = task.groupConfig?.mode === 'manual'
+        ? 'Atur manual'
+        : task.groupConfig?.mode === 'random' ? 'Acak otomatis' : 'Kelompok';
+
+      const infoCard = document.createElement('div');
+      infoCard.className = 'col-span-full bg-sky-50 border border-sky-100 rounded-xl p-3 text-xs text-sky-900 flex flex-wrap items-center gap-x-4 gap-y-1';
+      infoCard.innerHTML = `
+        <span class="font-semibold"><i class="fa-solid fa-book text-sky-500"></i> ${escapeHtml(task.subject)}</span>
+        <span class="text-sky-700">${escapeHtml(task.title)}</span>
+        <span class="text-sky-600">${groups.length} kelompok · ${totalMembers} murid</span>
+        <span class="text-sky-600">${modeLabel}</span>
+      `;
+      container.appendChild(infoCard);
+
+      groups.forEach((group, index) => {
+        const members = Array.isArray(group.members) ? group.members : [];
+        const isMyGroup = currentUser && members.includes(currentUser.username);
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-4 border shadow-sm ${isMyGroup ? 'border-sky-300 ring-1 ring-sky-200' : 'border-slate-200'}`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-3 border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-xs text-sky-700 flex items-center gap-1.5 flex-wrap">
+              <i class="fa-solid fa-users text-sky-500"></i> ${escapeHtml(group.name || `Kelompok ${index + 1}`)}
+              ${isMyGroup ? '<span class="text-[9px] bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-full">Kelompokmu</span>' : ''}
+            </h4>
+            <span class="text-[10px] text-slate-400 font-medium whitespace-nowrap">${members.length} Anggota</span>
+          </div>
+          <ul class="space-y-1.5 text-xs text-slate-600">
+            ${members.length
+              ? members.map(username => `
+                <li class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                  <i class="fa-regular fa-user text-slate-400 text-[10px]"></i>
+                  <span class="font-medium">${escapeHtml(studentName(username))}</span>
+                </li>
+              `).join('')
+              : '<li class="text-[11px] text-slate-400 italic">Belum ada anggota</li>'}
+          </ul>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // --- Admin group configuration ---
+    function setGroupMode(mode) {
+      groupMode = mode === 'manual' ? 'manual' : 'random';
+
+      const activeClass = 'flex-1 py-2 rounded-lg transition-all bg-white text-sky-700 shadow-sm';
+      const idleClass = 'flex-1 py-2 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+      document.getElementById('gm-mode-random').className = groupMode === 'random' ? activeClass : idleClass;
+      document.getElementById('gm-mode-manual').className = groupMode === 'manual' ? activeClass : idleClass;
+
+      document.getElementById('group-random-panel').classList.toggle('hidden', groupMode !== 'random');
+      document.getElementById('group-manual-panel').classList.toggle('hidden', groupMode !== 'manual');
+
+      const task = selectedGroupTask();
+      if (groupMode === 'manual' && task) initializeManualDraft(task);
+    }
+
+    function setRandomCapacity(value) {
+      document.getElementById('random-capacity').value = value;
+      syncRandomCapacityButtons();
+    }
+
+    function syncRandomCapacityButtons() {
+      const value = parseInt(document.getElementById('random-capacity').value, 10);
+      document.querySelectorAll('.btn-gcapacity').forEach(btn => {
+        const active = parseInt(btn.dataset.capacity, 10) === value;
+        btn.classList.toggle('bg-sky-600', active);
+        btn.classList.toggle('text-white', active);
+        btn.classList.toggle('border-sky-600', active);
+        btn.classList.toggle('bg-white', !active);
+        btn.classList.toggle('text-sky-700', !active);
+      });
+    }
+
+    function generateRandomGroups() {
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas yang dapat mengonfigurasi kelompok!", "info");
+        return;
+      }
+
+      const task = selectedGroupTask();
+      if (!task) {
+        showToast("Pilih tugas kelompok terlebih dahulu", "info");
+        return;
+      }
+
+      const input = document.getElementById('random-capacity');
+      let capacity = parseInt(input.value, 10) || 3;
+      capacity = Math.min(10, Math.max(2, capacity));
+      input.value = capacity;
+
+      const usernames = STUDENT_ACCOUNTS.map(student => student.username);
+      const shuffled = seededShuffle(usernames, `${task.id}-${Date.now()}`);
+
+      const groupCount = Math.ceil(shuffled.length / capacity);
+      const base = Math.floor(shuffled.length / groupCount);
+      const extra = shuffled.length % groupCount;
+
+      const groups = [];
+      let cursor = 0;
+      for (let index = 1; index <= groupCount; index++) {
+        const memberCount = base + (index <= extra ? 1 : 0);
+        groups.push({
+          id: `grp-${index}-${Date.now()}`,
+          name: `Kelompok ${index}`,
+          members: shuffled.slice(cursor, cursor + memberCount)
+        });
+        cursor += memberCount;
+      }
+
+      task.groups = groups;
+      task.groupSize = capacity;
+      task.groupConfig = { mode: 'random', capacity };
+      saveTasksToStorage();
+
+      syncRandomCapacityButtons();
+      populateGroupTaskSelect();
+      document.getElementById('group-task-select').value = task.id;
+      renderSavedGroups(task);
+      initializeManualDraft(task);
+      showToast(`Kelompok diacak otomatis (${groups.length} kelompok)`, "success");
+    }
+
+    function initializeManualDraft(task) {
+      const source = Array.isArray(task.groups) ? task.groups : [];
+      manualGroupDraft = source.length > 0
+        ? source.map((group, index) => ({
+            id: group.id || `grp-${Date.now()}-${index}`,
+            name: group.name || `Kelompok ${index + 1}`,
+            members: Array.isArray(group.members) ? [...group.members] : []
+          }))
+        : [{ id: `grp-${Date.now()}`, name: 'Kelompok 1', members: [] }];
+      renderManualEditor();
+    }
+
+    function addManualGroup() {
+      if (!isAdminUser()) return;
+      manualGroupDraft.push({
+        id: `grp-${Date.now()}-${manualGroupDraft.length + 1}`,
+        name: `Kelompok ${manualGroupDraft.length + 1}`,
+        members: []
+      });
+      renderManualEditor();
+    }
+
+    function removeManualGroup(index) {
+      if (!isAdminUser()) return;
+      manualGroupDraft.splice(index, 1);
+      if (manualGroupDraft.length === 0) {
+        manualGroupDraft.push({ id: `grp-${Date.now()}`, name: 'Kelompok 1', members: [] });
+      }
+      renderManualEditor();
+    }
+
+    function toggleManualMember(groupIndex, username, checked) {
+      if (!isAdminUser()) return;
+
+      // A student can only belong to one group
+      manualGroupDraft.forEach(group => {
+        group.members = group.members.filter(member => member !== username);
+      });
+
+      if (checked) {
+        manualGroupDraft[groupIndex].members.push(username);
+        manualGroupDraft[groupIndex].members.sort((a, b) => studentName(a).localeCompare(studentName(b), 'id'));
+      }
+
+      renderManualEditor();
+    }
+
+    function renderManualEditor() {
+      const container = document.getElementById('manual-groups-container');
+      const summary = document.getElementById('manual-summary');
+      if (!container || !summary) return;
+
+      if (!isAdminUser()) {
+        container.innerHTML = '';
+        summary.innerText = '';
+        return;
+      }
+
+      const assigned = new Set(manualGroupDraft.flatMap(group => group.members));
+      const unassignedCount = STUDENT_ACCOUNTS.length - assigned.size;
+      summary.innerText = `${assigned.size}/${STUDENT_ACCOUNTS.length} murid sudah masuk kelompok` +
+        (unassignedCount > 0 ? ` · ${unassignedCount} belum masuk` : '');
+
+      container.innerHTML = manualGroupDraft.map((group, groupIndex) => `
+        <div class="bg-white rounded-xl border border-amber-200 p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-users text-amber-500"></i> ${escapeHtml(group.name)}
+            </h4>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-400">${group.members.length} anggota</span>
+              <button type="button" onclick="removeManualGroup(${groupIndex})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all" title="Hapus kelompok">
+                <i class="fa-solid fa-trash-can text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+          <div class="max-h-44 overflow-y-auto grid grid-cols-1 gap-1 pr-1">
+            ${STUDENT_ACCOUNTS.map(student => `
+              <label class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-amber-50 cursor-pointer">
+                <input type="checkbox" data-group="${groupIndex}" data-username="${student.username}"
+                  onchange="toggleManualMember(${groupIndex}, '${student.username}', this.checked)"
+                  ${group.members.includes(student.username) ? 'checked' : ''}
+                  class="rounded text-amber-600 focus:ring-amber-500">
+                <span class="text-[11px] text-slate-700">${escapeHtml(student.name)}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveManualGroups() {
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas yang dapat mengonfigurasi kelompok!", "info");
+        return;
+      }
+
+      const task = selectedGroupTask();
+      if (!task) {
+        showToast("Pilih tugas kelompok terlebih dahulu", "info");
+        return;
+      }
+
+      task.groups = manualGroupDraft.map((group, index) => ({
+        id: group.id,
+        name: group.name || `Kelompok ${index + 1}`,
+        members: [...group.members]
+      }));
+      task.groupConfig = { mode: 'manual' };
+      saveTasksToStorage();
+
+      populateGroupTaskSelect();
+      document.getElementById('group-task-select').value = task.id;
+      renderSavedGroups(task);
+      renderManualEditor();
+      showToast("Pembagian kelompok manual disimpan", "success");
+    }
+
+    // VIEW & FILTER NAVIGATION
+    function switchView(view) {
+      const meta = {
+        tasks: { title: 'Daftar Tugas Kelas', subtitle: 'Pantau dan selesaikan tugas tepat waktu', nav: 'nav-tasks' },
+        groups: { title: 'Kelompok Belajar', subtitle: 'Kelola dan lihat pembagian kelompok setiap tugas', nav: 'nav-groups' },
+        announcements: { title: 'Pengumuman Kelas', subtitle: 'Informasi terbaru dari ketua kelas', nav: 'nav-announcements' }
+      };
+
+      if (!meta[view]) return;
+
+      ['tasks', 'groups', 'announcements'].forEach(name => {
+        document.getElementById(`view-${name}`).classList.toggle('hidden', name !== view);
+      });
+
+      Object.values(meta).forEach(item => {
+        const el = document.getElementById(item.nav);
+        el.classList.remove('bg-sky-600', 'text-white');
+        el.classList.add('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+      });
+
+      const activeNav = document.getElementById(meta[view].nav);
+      activeNav.classList.remove('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+      activeNav.classList.add('bg-sky-600', 'text-white');
+
+      document.getElementById('page-title').innerText = meta[view].title;
+      document.getElementById('page-subtitle').innerText = meta[view].subtitle;
+
+      if (view === 'tasks') {
+        renderTasks();
+      } else if (view === 'groups') {
+        populateGroupTaskSelect();
+        generateGroupsView();
+      } else {
+        renderAnnouncements();
+      }
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+
+      ['all', 'pending', 'urgent', 'completed'].forEach(name => {
+        const btn = document.getElementById(`filter-${name}`);
+        if (!btn) return;
+
+        const active = name === filter;
+        btn.classList.toggle('bg-sky-100', active);
+        btn.classList.toggle('text-sky-700', active);
+        btn.classList.toggle('font-semibold', active);
+        btn.classList.toggle('text-slate-600', !active);
+        btn.classList.toggle('hover:bg-slate-100', !active);
+      });
+
+      renderTasks();
+    }
+
+    // ANNOUNCEMENTS (ADMIN ONLY WRITE ACCESS)
+    function handleSendAnnouncement(e) {
+      e.preventDefault();
+
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas yang dapat mengirim pengumuman!", "info");
+        return;
+      }
+
+      const title = document.getElementById('announcement-title').value.trim();
+      const message = document.getElementById('announcement-message').value.trim();
+      if (!title || !message) return;
+
+      const announcement = {
+        id: 'ann-' + Date.now(),
+        title,
+        message,
+        author: currentUser.name,
+        createdAt: new Date().toISOString()
+      };
+
+      announcements.unshift(announcement);
+      saveAnnouncementsToStorage();
+
+      document.getElementById('announcement-form').reset();
+      renderAnnouncements();
+      showToast("Pengumuman berhasil dikirim ke seluruh murid!", "success");
+      sendDeviceNotification(`📢 ${title}`, message);
+    }
+
+    function renderAnnouncements() {
+      const container = document.getElementById('announcements-container');
+      const emptyState = document.getElementById('announcements-empty');
+      if (!container || !emptyState) return;
+
+      container.innerHTML = '';
+
+      if (announcements.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      announcements.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm';
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <h3 class="font-bold text-sm text-slate-800 leading-snug">${escapeHtml(item.title)}</h3>
+            ${isAdminUser() ? `
+              <button onclick="deleteAnnouncement('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Hapus pengumuman">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            ` : ''}
+          </div>
+          <p class="text-xs text-slate-600 whitespace-pre-line mb-3">${escapeHtml(item.message)}</p>
+          <div class="flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-100 pt-2">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-user-shield"></i> ${escapeHtml(item.author)}</span>
+            <span><i class="fa-regular fa-clock"></i> ${formatDateTime(item.createdAt)}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function deleteAnnouncement(id) {
+      if (!isAdminUser()) {
+        showToast("Hanya ketua kelas yang dapat menghapus pengumuman!", "info");
+        return;
+      }
+
+      if (confirm("Hapus pengumuman ini?")) {
+        announcements = announcements.filter(item => item.id !== id);
+        saveAnnouncementsToStorage();
+        renderAnnouncements();
+        showToast("Pengumuman dihapus", "info");
+      }
+    }
+
+    // UTILS & NOTIFICATIONS
+    function escapeHtml(value = '') {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function formatDateTime(isoString) {
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return '-';
+      return date.toLocaleString('id-ID', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function showToast(message, type = "info") {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = message;
+      if (type === 'success') {
+        toastIcon.className = "text-emerald-400";
+        toastIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+      } else {
+        toastIcon.className = "text-amber-400";
+        toastIcon.innerHTML = `<i class="fa-solid fa-bell"></i>`;
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    function formatDate(dateString) {
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      return new Date(dateString).toLocaleDateString('id-ID', options);
+    }
+  </script>
+</body>
+</html>
